@@ -1,0 +1,441 @@
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ALMassachusetts:al_massachusetts.yml
+  - docassemble.MassAccess:massaccess.yml
+---
+metadata:
+  title: >-
+    Certificate of service
+  short title: >-
+    Certificate of service
+  description: |-
+    This interview helps someone in Massachusetts file a Certificate of service.
+  can_I_use_this_form: |
+    If you are a _____________, you can use this interview to ____________.
+  before_you_start: |
+    This interview will help you file a Certificate of service.
+    
+    Before you get started, please gather:
+    
+    1. 
+    1. 
+    1. 
+    
+    When you are finished, you will need to:
+    
+    1. 
+    1.
+  maturity: production
+  estimated_completion_minutes: 10
+  estimated_completion_delta: 5
+  LIST_topics: 
+    - "DI-00-00-00-00"
+    - "GO-00-00-00-00"
+  tags:
+    - "DI-00-00-00-00"
+    - "GO-00-00-00-00"
+  authors:
+    - LIT Volunteer - Kaveesha Shah
+  original_form: []
+  original_form_published_on: ""
+  allowed_courts: []
+  typical_role: "unknown"
+  al_weaver_version: "1.11.0"
+  generated_on: "2026-01-28"
+  languages:
+    - en
+  jurisdiction: NAM-US-US+MA
+  review_date: 2026-01-28
+  form_titles:
+    - Certificate of service
+  form_numbers: []
+  update_notes: |
+---
+code: |
+  # This controls the default country and list of states in address field questions
+  AL_DEFAULT_COUNTRY = "US"
+---
+code: |
+  # This controls the default state in address field questions
+  AL_DEFAULT_STATE = "MA"
+---
+code: |
+  github_repo_name =  'docassemble-CertificateOfService'
+---
+code: |
+  interview_short_title = "File a Certificate of service"
+---
+code: |
+  al_form_type = "existing_case" 
+---
+objects:
+  - users: ALPeopleList.using(ask_number=True,target_number=1)
+---
+sections:
+  - review_certificate_of_service: Review your answers
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_certificate_of_service
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = []
+  nav.set_section("review_certificate_of_service")
+  # Below sets the user_role and user_ask_role by asking a question.
+  # You can set user_ask_role directly instead to either 'plaintiff' or 'defendant'
+  user_ask_role
+  users.gather()
+  set_parts(subtitle=str(users))
+  service_date
+  is_plaintiff_served
+  set_progress(14)
+  plaintiffs.gather()
+  defendants.gather()
+  papers_served
+  set_progress(28)
+  is_personal_service
+  personalservedusers1_name_full
+  personalservedsers1_address_block
+  set_progress(42)
+  docket_number
+  signature_date
+  users[0].address.address
+  set_progress(56)
+  users[0].phone_number
+  users[0].email
+  users[0].signature
+  interview_order_certificate_of_service = True
+---
+###################### Main order ######################
+comment: |
+  This block includes the logic for standalone interviews.
+  Delete mandatory: True to include in another interview
+mandatory: True
+code: |
+  al_intro_screen
+  certificate_of_service_intro
+  interview_order_certificate_of_service
+  signature_date
+  # Store anonymous data for analytics / statistics
+  store_variables_snapshot(
+      persistent=True,
+      data={
+          "zip": showifdef("users[0].address.zip"),
+          "reached_interview_end": True,
+      },
+  )
+  certificate_of_service_download
+---
+id: Certificate_of_service
+continue button field: certificate_of_service_intro
+question: |
+  Certificate of service
+subquestion: |
+  This interview will help you file a Certificate of service.
+  
+  Before you get started, please gather:
+  
+  1. 
+  1. 
+  1. 
+  
+  When you are finished, you will need to:
+  
+  1. 
+  1.
+
+  If you are a _____________, you can use this interview to ____________.
+
+  Most people take about 10 minutes to complete this interview.
+---
+id: Date of Service
+question: |
+  Date of Service
+fields:
+  - "Date of service": service_date
+    datatype: date
+---
+id: Choose who you served
+question: |
+  Choose who you served
+fields:
+  - "Are you serving the plaintiff": is_plaintiff_served
+    datatype: yesno
+  - "Are you serving the defendant": is_defendant_served
+    datatype: yesno
+---
+id: Choose papers served
+question: |
+  Choose papers served
+fields:
+  - "What papers did you serve?": papers_served
+    input type: area
+    maxlength: 497
+---
+id: How the papers were served
+question: |
+  How the papers were served
+fields:
+  - "Did you hand over the papers in person?": is_personal_service
+    datatype: yesno
+  - "Did you serve the papers via Mail": is_mail_service
+    datatype: yesno
+---
+id: To whom did you send handover the papers
+question: |
+  To whom did you send/handover the papers
+fields:
+  - "Who did you handover the served papers the papers?": personalservedusers1_name_full
+    maxlength: 31
+  - "To whom did you mail the served papers?": mailservedusers1_name_full
+    maxlength: 31
+---
+id: Where did you serve them
+question: |
+  Where did you serve them
+fields:
+  - "At what address did you hand over the papers?": personalservedsers1_address_block
+    input type: area
+    maxlength: 497
+  - "To what address did you mail the papers?": mailservedusers1_mailing_address_block
+    input type: area
+    maxlength: 497
+---
+id: preview certificate_of_service
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ al_court_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. Click the "Edit answers" button
+  to edit your answers.
+
+  ${ action_button_html(url_action('review_certificate_of_service'), label='Edit answers', color='info') }
+  
+  Remember to come back to this window to continue and sign your form.
+continue button field: certificate_of_service_preview_question    
+---
+code: |
+  signature_fields = ['users[0].signature']
+---
+code: |
+  # This is a placeholder for the addresses that will be searched
+  # for matching address to court. Edit if court venue is based on 
+  # a different address than the user's
+  [user.address.address for user in users.complete_elements()]
+  addresses_to_search = [user.address for user in users.complete_elements()]
+---
+id: certificate of service review screen
+event: review_certificate_of_service
+question: |
+  Review your answers
+review:
+  - Edit: plaintiffs.revisit
+    button: |
+      **Plaintiffs**
+
+      % for item in plaintiffs:
+        * ${ item }
+      % endfor
+  - Edit: docket_number
+    button: |
+      **Docket number**:
+      ${ docket_number }
+  - Edit: defendants.revisit
+    button: |
+      **Defendants**
+
+      % for item in defendants:
+        * ${ item }
+      % endfor
+  - Edit: service_date
+    button: |
+      **Date of service**:
+      ${ service_date }
+  - Edit: is_plaintiff_served
+    button: |
+      **Are you serving the plaintiff**:
+      ${ word(yesno(is_plaintiff_served)) }
+  - Edit: is_defendant_served
+    button: |
+      **Are you serving the defendant**:
+      ${ word(yesno(is_defendant_served)) }
+  - Edit: papers_served
+    button: |
+      **What papers did you serve?**:
+      > ${ single_paragraph(papers_served) }
+  - Edit: is_personal_service
+    button: |
+      **Did you hand over the papers in person?**:
+      ${ word(yesno(is_personal_service)) }
+  - Edit: personalservedusers1_name_full
+    button: |
+      **Who did you handover the served papers the papers?**:
+      ${ personalservedusers1_name_full }
+  - Edit: personalservedsers1_address_block
+    button: |
+      **At what address did you hand over the papers?**:
+      > ${ single_paragraph(personalservedsers1_address_block) }
+  - Edit: is_mail_service
+    button: |
+      **Did you serve the papers via Mail**:
+      ${ word(yesno(is_mail_service)) }
+  - Edit: mailservedusers1_name_full
+    button: |
+      **To whom did you mail the served papers?**:
+      ${ mailservedusers1_name_full }
+  - Edit: mailservedusers1_mailing_address_block
+    button: |
+      **To what address did you mail the papers?**:
+      > ${ single_paragraph(mailservedusers1_mailing_address_block) }
+  - Edit: signature_date
+    button: |
+      **Date of signature**:
+      ${ signature_date }
+  - Edit: users.revisit
+    button: |
+      **Users**
+
+      % for item in users:
+        * ${ item }
+      % endfor
+---
+continue button field: plaintiffs.revisit
+question: |
+  Edit plaintiffs
+subquestion: |
+  ${ plaintiffs.table }
+
+  ${ plaintiffs.add_action() }
+---
+table: plaintiffs.table
+rows: plaintiffs
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+edit:
+  - name.first
+confirm: True
+
+---
+continue button field: defendants.revisit
+question: |
+  Edit defendants
+subquestion: |
+  ${ defendants.table }
+
+  ${ defendants.add_action() }
+---
+table: defendants.table
+rows: defendants
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+edit:
+  - name.first
+confirm: True
+
+---
+continue button field: users.revisit
+question: |
+  Edit users
+subquestion: |
+  ${ users.table }
+
+  ${ users.add_action() }
+---
+table: users.table
+rows: users
+columns:
+  - Signature: |
+      row_item.signature if defined("row_item.signature") else ""
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+  - Address: |
+      row_item.address.block() if defined("row_item.address.address") else ""
+  - Phone number: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
+  - Email: |
+      row_item.email if defined("row_item.email") else ""
+edit:
+  - signature
+  - name.first
+  - address.address
+  - phone_number
+  - email
+confirm: True
+
+---
+id: download certificate_of_service
+event: certificate_of_service_download
+question: |
+  All done
+subquestion: |
+  Thank you ${users}. Your form is ready to download and deliver.
+  
+  View, download and send your form below. Click the "Edit answers" button to fix any mistakes.
+
+  ${ action_button_html(url_action('review_certificate_of_service'), label='Edit answers', color='info') }
+  
+  
+  ${ al_user_bundle.download_list_html() }
+  
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+
+progress: 100
+---
+# ALDocument objects specify the metadata for each template
+objects:
+  - certificate_of_service_Post_interview_instructions: ALDocument.using(title="Instructions", filename="certificate_of_service_next_steps.docx", enabled=True, has_addendum=False)
+  - certificate_of_service_attachment: ALDocument.using(title="Certificate of service", filename="certificate_of_service", enabled=True, has_addendum=False, )
+---
+# Bundles group the ALDocuments into separate downloads, such as for court and for the user
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[certificate_of_service_Post_interview_instructions, certificate_of_service_attachment], filename="certificate_of_service", title="All forms to download for your records", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[certificate_of_service_attachment],  filename="certificate_of_service", title="All forms to deliver to court", enabled=True)
+---
+# Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the same template is 
+# used for "preview" and "final" keys, and logic in the template checks the value of 
+# `i` to show or hide the user's signature
+attachment:
+  name: Post-interview-Instructions
+  filename: certificate_of_service_next_steps
+  docx template file: certificate_of_service_next_steps.docx
+  variable name: certificate_of_service_Post_interview_instructions[i]
+  skip undefined: True
+  tagged pdf: True
+---
+attachment:
+  name: certificate of service
+  filename: certificate_of_service
+  variable name: certificate_of_service_attachment[i]
+  skip undefined: True
+  pdf template file: certificate_of_service.pdf
+  fields:
+      - "plaintiffs1_name_full": ${ plaintiffs[0] }
+      - "docket_number": ${ docket_number }
+      - "defendants1_name_full": ${ defendants[0] }
+      - "service_date": ${ service_date.format() }
+      - "is_plaintiff_served": ${ is_plaintiff_served }
+      - "is_defendant served": ${ is_defendant_served }
+      - "papers_served": ${ papers_served }
+      - "is_personal_service": ${ is_personal_service }
+      - "personalservedusers1_name_full": ${ personalservedusers1_name_full }
+      - "personalservedsers1_address_block": ${ personalservedsers1_address_block }
+      - "is_mail_service": ${ is_mail_service }
+      - "mailservedusers1_name_full": ${ mailservedusers1_name_full }
+      - "mailservedusers1_mailing_address_block": ${ mailservedusers1_mailing_address_block }
+      - "signature_date": ${ signature_date }
+      - "users1_signature": ${ users[0].signature_if_final(i) }
+      - "users1_name_full": ${ users[0] }
+      - "users1_address_block": ${ users[0].address.block() }
+      - "users1_phone_number": ${ users[0].phone_number }
+      - "users1_email": ${ users[0].email }
+
+
+
