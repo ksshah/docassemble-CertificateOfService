@@ -70,7 +70,8 @@ code: |
   al_form_type = "existing_case" 
 ---
 objects:
-  - users: ALPeopleList.using(ask_number=True,target_number=1)
+  - users: ALPeopleList.using(ask_number=True,target_number=1,complete_attributes="complete")
+  - other_parties: ALPeopleList.using(ask_number=True,target_number=1,complete_attributes="complete")
 ---
 sections:
   - review_certificate_of_service: Review your answers
@@ -89,15 +90,19 @@ code: |
   users.gather()
   set_parts(subtitle=str(users))
   service_date
-  is_plaintiff_served
+  if user_ask_role == 'defendant':
+    is_defendant_served = True
+    defendants = users
+    plaintiffs = other_parties
+  else:
+    is_plaintiff_served = True
+    defendants = other_parties
+    plaintiffs = users
   set_progress(14)
-  plaintiffs.gather()
-  defendants.gather()
+  other_parties.gather()
   papers_served
   set_progress(28)
-  is_personal_service
-  personalservedusers1_name_full
-  personalservedsers1_address_block
+  paper_serving_mechanism  
   set_progress(42)
   docket_number
   signature_date
@@ -107,6 +112,18 @@ code: |
   users[0].email
   users[0].signature
   interview_order_certificate_of_service = True
+---
+code: |
+  users[i].name.first
+  users[i].address.address
+  users[i].phone_number
+  users[i].complete=True
+---
+code: |
+  other_parties[i].name.first
+  other_parties[i].service_address.address
+  other_parties[i].phone_number
+  other_parties[i].complete=True
 ---
 ###################### Main order ######################
 comment: |
@@ -157,15 +174,6 @@ fields:
   - "Date of service": service_date
     datatype: date
 ---
-id: Choose who you served
-question: |
-  Choose who you served
-fields:
-  - "Are you serving the plaintiff": is_plaintiff_served
-    datatype: yesno
-  - "Are you serving the defendant": is_defendant_served
-    datatype: yesno
----
 id: Choose papers served
 question: |
   Choose papers served
@@ -174,34 +182,15 @@ fields:
     input type: area
     maxlength: 497
 ---
-id: How the papers were served
+id: How did you serve the papers
 question: |
-  How the papers were served
+  How did you serve the papers
 fields:
-  - "Did you hand over the papers in person?": is_personal_service
-    datatype: yesno
-  - "Did you serve the papers via Mail": is_mail_service
-    datatype: yesno
----
-id: To whom did you send handover the papers
-question: |
-  To whom did you send/handover the papers
-fields:
-  - "Who did you handover the served papers the papers?": personalservedusers1_name_full
-    maxlength: 31
-  - "To whom did you mail the served papers?": mailservedusers1_name_full
-    maxlength: 31
----
-id: Where did you serve them
-question: |
-  Where did you serve them
-fields:
-  - "At what address did you hand over the papers?": personalservedsers1_address_block
-    input type: area
-    maxlength: 497
-  - "To what address did you mail the papers?": mailservedusers1_mailing_address_block
-    input type: area
-    maxlength: 497
+  - How did you serve the papers: paper_serving_mechanism
+    input type: radio
+    choices:
+      - Service by Mail: mail
+      - Personal Service: personal
 ---
 id: preview certificate_of_service
 question: |
@@ -268,10 +257,10 @@ review:
     button: |
       **What papers did you serve?**:
       > ${ single_paragraph(papers_served) }
-  - Edit: is_personal_service
+  - Edit: paper_serving_mechanism
     button: |
-      **Did you hand over the papers in person?**:
-      ${ word(yesno(is_personal_service)) }
+      **You served the papers by**:
+      ${ "by hand" if paper_serving_mechanism == "personal" else "by mail" }
   - Edit: personalservedusers1_name_full
     button: |
       **Who did you handover the served papers the papers?**:
@@ -424,12 +413,12 @@ attachment:
       - "is_plaintiff_served": ${ is_plaintiff_served }
       - "is_defendant served": ${ is_defendant_served }
       - "papers_served": ${ papers_served }
-      - "is_personal_service": ${ is_personal_service }
-      - "personalservedusers1_name_full": ${ personalservedusers1_name_full }
-      - "personalservedsers1_address_block": ${ personalservedsers1_address_block }
-      - "is_mail_service": ${ is_mail_service }
-      - "mailservedusers1_name_full": ${ mailservedusers1_name_full }
-      - "mailservedusers1_mailing_address_block": ${ mailservedusers1_mailing_address_block }
+      - "is_personal_service": ${ paper_serving_mechanism == "personal" }
+      - "personalservedusers1_name_full": ${ other_parties.name.full() if paper_serving_mechanism == "personal" else "" }
+      - "personalservedsers1_address_block": ${ other_parties.address.block() if paper_serving_mechanism == "personal" else "" }
+      - "is_mail_service": ${ paper_serving_mechanism == "mail" }
+      - "mailservedusers1_name_full": ${ other_parties.name.full() if paper_serving_mechanism == "mail" else "" }
+      - "mailservedusers1_mailing_address_block": ${ other_parties.address.block() if paper_serving_mechanism == "mail" else "" }
       - "signature_date": ${ signature_date }
       - "users1_signature": ${ users[0].signature_if_final(i) }
       - "users1_name_full": ${ users[0] }
