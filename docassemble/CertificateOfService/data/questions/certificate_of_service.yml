@@ -281,10 +281,6 @@ review:
     button: |
       **To what address did you mail the papers?**:
       > ${ single_paragraph(mailservedusers1_mailing_address_block) }
-  - Edit: signature_date
-    button: |
-      **Date of signature**:
-      ${ signature_date }
   - Edit: users.revisit
     button: |
       **Users**
@@ -351,7 +347,6 @@ columns:
   - Email: |
       row_item.email if defined("row_item.email") else ""
 edit:
-  - signature
   - name.first
   - address.address
   - phone_number
@@ -423,7 +418,7 @@ attachment:
       - "users1_signature": ${ users[0].signature_if_final(i) }
       - "users1_name_full": ${ users[0] }
       - "users1_address_block": ${ users[0].address.block() }
-      - "users1_phone_number": ${ users[0].phone_number }
+      - "users1_phone_number": ${ users[0].mobile_number if showifdef('users[0].mobile_number') else users[0].phone_number }
       - "users1_email": ${ users[0].email }
 
 
